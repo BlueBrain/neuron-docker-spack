@@ -1,0 +1,56 @@
+packages:
+    autoconf:
+        paths:
+            autoconf@2.69: /usr
+        version: [2.69]
+    automake:
+        paths:
+            automake@1.15.1: /usr
+        version: [1.15.1]
+    bison:
+        paths:
+            bison@3.0.4: /usr
+        version: [3.0.4]
+    cmake:
+        paths:
+            cmake@3.10.2: /usr
+        version: [3.10.2]
+    flex:
+        paths:
+            flex@2.6.2: /usr
+        version: [2.6.2]
+    hdf5:
+        paths:
+            hdf5@1.10: /usr/lib/x86_64-linux-gnu/hdf5/serial
+        version: [1.10]
+    libtool:
+        paths:
+            libtool@2.4.6: /usr
+        version: [2.4.6]
+    mpich:
+        paths:
+            mpich@3.3: /usr
+        version: [3.3]
+    ncurses:
+        paths:
+            ncurses@6.1: /usr
+        version: [6.1]
+    openssl:
+        paths:
+            openssl@1.1.0g: /usr
+        version: [1.1.0g]
+    pkg-config:
+        paths:
+            pkg-config@0.29.1: /usr
+        version: [0.29.1]
+    python:
+        paths:
+            python@2.7.15: /usr
+        version: [2.7.15]
+    tcl:
+        paths:
+            tcl@8.6: /usr
+        version: [8.6]
+    all:
+        providers:
+            mpi: [mpich]
