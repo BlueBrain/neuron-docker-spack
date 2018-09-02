@@ -1,0 +1,21 @@
+version: '2.2'
+
+services:
+  login:
+    image: cellular:latest
+    ports:
+      - "22"
+    links:
+      - node
+    networks:
+      - net
+
+  node:
+    image: cellular:latest
+    scale: 3
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge

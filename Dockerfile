@@ -7,7 +7,7 @@ RUN apt-get update \
     && apt-get -y install software-properties-common \
     && add-apt-repository ppa:ubuntu-toolchain-r/test \
     && apt-get update \
-    && apt-get -y --force-yes install \
+    && apt-get -y --allow-downgrades --allow-remove-essential --allow-change-held-packages install \
     aptitude \
     cmake \
     build-essential \
@@ -29,7 +29,7 @@ RUN apt-get update \
     python2.7-dev \
     libncurses-dev \
     openssh-server \
-    libmpich-dev \
+    libopenmpi-dev \
     libhdf5-serial-dev \
     python-minimal \
     libtool \
@@ -52,14 +52,15 @@ ENV LDAP_USERNAME $ldap_username
 
 # user setup (ssh login fix, otherwise user is kicked off after login)
 RUN mkdir /var/run/sshd \
-    && echo 'root:root' | chpasswd \
+    && echo 'root:${USERNAME}' | chpasswd \
     && sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config \
-    && sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config
+    && sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config \
+    && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
 # add USER
 RUN useradd -m -s /bin/bash ${USERNAME} \
     && echo "${USERNAME}:${PASSWORD}" | chpasswd \
-    && adduser ${USERNAME} sudo \
+    && adduser --disabled-password --gecos "" ${USERNAME} sudo \
     && echo ${USERNAME}' ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
 ENV NOTVISIBLE "in users profile"
@@ -67,7 +68,6 @@ RUN echo "export VISIBLE=now" >> /etc/profile
 
 # expose ssh port
 EXPOSE 22
-CMD ["/usr/sbin/sshd", "-D"]
 
 # install rest of packages as normal user
 USER $USERNAME
@@ -115,19 +115,21 @@ RUN git config --global user.email "${GIT_EMAIL}"
 RUN git config --global user.name "${GIT_NAME}"
 
 # make ssh dir and add your private key (don't publish!)
-ADD docker_rsa.pub $HOME/.ssh/docker_rsa.pub
-ADD docker_rsa $HOME/.ssh/docker_rsa
-RUN sudo chmod 400 $HOME/.ssh/docker_rsa
+ADD config $HOME/.ssh/config
+ADD docker_rsa.pub $HOME/.ssh/id_rsa.pub
+ADD docker_rsa $HOME/.ssh/id_rsa
+ADD docker_rsa.pub $HOME/.ssh/authorized_keys
+RUN sudo chmod 400 $HOME/.ssh/id_rsa
 RUN sudo chown -R $USERNAME $HOME/.ssh
 RUN ssh-keyscan bbpcode.epfl.ch >> $HOME/.ssh/known_hosts
 
 RUN echo "Host bbpcode.epfl.ch" >> $HOME/.ssh/config
 RUN echo "  HostName bbpcode.epfl.ch" >> $HOME/.ssh/config
 RUN echo "  User ${LDAP_USERNAME}" >> $HOME/.ssh/config
-RUN echo "  IdentityFile ~/.ssh/docker_rsa" >> $HOME/.ssh/config
+RUN echo "  IdentityFile ~/.ssh/id_rsa" >> $HOME/.ssh/config
 
 # register external packages
-RUN spack install autoconf automake bison cmake flex libtool mpich mpich ncurses pkg-config python
+RUN spack install autoconf automake bison cmake flex libtool ncurses openmpi pkg-config python
 
 # install neuron
 RUN spack spec -I neuron
@@ -142,23 +144,24 @@ RUN spack find
 RUN spack spec -I neurodamus@master~coreneuron
 RUN spack install neurodamus@master~coreneuron
 
-# clone test simulation
+# clone test simulation, disable report multi-container run
 RUN git clone ssh://bbpcode.epfl.ch/user/kumbhar/simtestdata $HOME/sim
 RUN mkdir $HOME/sim/build \
         && cd $HOME/sim/build \
         && cmake .. \
         && cd circuitBuilding_1000neurons \
         && sed -i "s/CircuitTarget.*/CircuitTarget mini50/g" BlueConfig \
-        && sed -i "s/RunMode.*/RunMode RR/g" BlueConfig
+        && sed -i "s/RunMode.*/RunMode RR/g" BlueConfig \
+        && sed -i "s/^Report /#Report /g" BlueConfig
 
-# remove ssh keys
-RUN rm -rf $HOME/.ssh/docker_rsa*
-
-# run simulation
-RUN cd $HOME/sim/build/circuitBuilding_1000neurons \
-    && . $SPACK_ROOT/share/spack/setup-env.sh \
-    && module load neurodamus \
-    && mpirun -n 4 special -mpi $HOC_LIBRARY_PATH/init.hoc
+# add test example
+ADD test/hello.c $HOME/test/hello.c
+RUN sudo chown -R $USERNAME $HOME/test
+RUN mpicc $HOME/test/hello.c -o $HOME/test/hello
 
 # start in $HOME
 WORKDIR $HOME
+
+# start as root
+USER root
+CMD ["/usr/sbin/sshd", "-D"]

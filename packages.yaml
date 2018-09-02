@@ -27,14 +27,14 @@ packages:
         paths:
             libtool@2.4.6: /usr
         version: [2.4.6]
-    mpich:
-        paths:
-            mpich@3.3: /usr
-        version: [3.3]
     ncurses:
         paths:
             ncurses@6.1: /usr
         version: [6.1]
+    openmpi:
+        paths:
+            openmpi@2.1.1: /usr
+        version: [3.3]
     openssl:
         paths:
             openssl@1.1.0g: /usr
@@ -53,4 +53,4 @@ packages:
         version: [8.6]
     all:
         providers:
-            mpi: [mpich]
+            mpi: [openmpi]
