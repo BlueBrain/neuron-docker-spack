@@ -1,5 +1,5 @@
 FROM ubuntu:18.04
-MAINTAINER Pramod Kumbhar <pramod.kumbhar@epfl.ch>
+MAINTAINER Pramod Kumbhar <pramod.s.kumbhar@gmail.com>
 ENV DEBIAN_FRONTEND noninteractive
 
 # default software required
