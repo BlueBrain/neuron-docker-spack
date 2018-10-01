@@ -1,4 +1,5 @@
 config:
+  install_tree: $HOME/install
   build_stage:
     - $tempdir
-  install_path_scheme: '${ARCHITECTURE}/${COMPILERNAME}-${COMPILERVER}/${PACKAGE}-${VERSION}-${HASH:6}'
+  install_path_scheme: '${PACKAGE}-${VERSION}'

@@ -29,6 +29,7 @@ modules:
     whitelist:
       - neuron
       - neurodamus
+      - openmpi
     blacklist:
       - '%gcc'
       - '%clang'
