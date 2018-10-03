@@ -171,6 +171,9 @@ ENV PATH="${HOME}/install/openmpi-3.1.1/bin:${PATH}"
 ENV MPIEXEC="${HOME}/install/openmpi-3.1.1/bin/mpiexec"
 ENV SPECIAL="${HOME}/install/neurodamus-master/x86_64/special"
 
+RUN spack install hpctoolkit@master
+RUN spack install tau
+
 # start as root
 USER root
 
