@@ -28,9 +28,10 @@ RUN apt-get update \
     make \
     python2.7-dev \
     libncurses-dev \
+    libncursesw5-dev \
     openssh-server \
-    libhdf5-serial-dev \
     numactl \
+    libhdf5-openmpi-dev \
     python-minimal \
     libtool \
     libpciaccess-dev \
@@ -147,6 +148,12 @@ RUN spack find
 # install neurodamus
 RUN spack spec -I neurodamus@master~coreneuron
 RUN spack install neurodamus@master~coreneuron
+RUN spack spec -I neurodamus-neocortex~coreneuron
+RUN spack install neurodamus-neocortex~coreneuron
+RUN spack spec -I neurodamus-hippocampus~coreneuron
+RUN spack install neurodamus-hippocampus~coreneuron
+RUN spack spec -I neurodamus-thalamus~coreneuron
+RUN spack install neurodamus-thalamus~coreneuron
 
 # clone test simulation, disable report multi-container run
 RUN git clone ssh://bbpcode.epfl.ch/user/kumbhar/simtestdata $HOME/sim

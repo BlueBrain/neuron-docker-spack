@@ -30,6 +30,9 @@ modules:
       - neuron
       - neurodamus
       - openmpi
+      - neurodamus-hippocampus
+      - neurodamus-neocortex
+      - neurodamus-thalamus
     blacklist:
       - '%gcc'
       - '%clang'

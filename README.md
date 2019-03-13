@@ -15,10 +15,10 @@
     cd neuron-docker-spack
     ```
 
-- Build image
+- Build image (make sure to use your username on the 'ldap_username' parameter)
 
     ```
-    docker build --build-arg username=kumbhar --build-arg password=kumbhar123 --build-arg git_name="Pramod Kumbhar" --build-arg git_email="pramod.s.kumbhar@gmail.com"  --build-arg ldap_username=kumbhar -t cellular .
+    docker build --build-arg username=kumbhar --build-arg password=kumbhar123 --build-arg git_name="Pramod Kumbhar" --build-arg git_email="pramod.s.kumbhar@gmail.com"  --build-arg ldap_username=<YourUsername> -t cellular .
     ```
 This will build neuron based simulation toolchain and prepare test simulation.
 
@@ -36,6 +36,14 @@ This will build neuron based simulation toolchain and prepare test simulation.
     ```
     docker run -i -t cellular:latest /bin/bash -c -i 'cd $HOME/sim/build/circuitBuilding_1000neurons && module load neurodamus/master && mpiexec -n 6 --host localhost:6 --allow-run-as-root special $HOC_LIBRARY_PATH/init.hoc -mpi'
     ```
+
+You can change the neurodamus module you want to load for your simulation. The installed ones are:
+- neurodamus/master
+- neurodamus-neocortex
+- neurodamus-hippocampus
+- neurodamus-thalamus
+
+For the circuitBuilding only the neurodamus/master and neurodamus-neocortex will work, because the mod files are compiled for neocortex.
 
 - To run on multiple docker containers:
 	- Update `docker-compose.yml` specification with appropriate number of compute nodes (`scale` parameter in `node` service)

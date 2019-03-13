@@ -21,7 +21,7 @@ packages:
         version: [2.6.2]
     hdf5:
         paths:
-            hdf5@1.10: /usr/lib/x86_64-linux-gnu/hdf5/serial
+            hdf5@1.10: /usr/lib/x86_64-linux-gnu/hdf5/openmpi
         version: [1.10]
     libpciaccess:
         paths:
