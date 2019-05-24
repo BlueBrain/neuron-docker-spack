@@ -15,10 +15,10 @@
     cd neuron-docker-spack
     ```
 
-- Build image
+- Build image (make sure to use your username on the 'ldap_username' parameter)
 
     ```
-    docker build --build-arg username=kumbhar --build-arg password=kumbhar123 --build-arg git_name="Pramod Kumbhar" --build-arg git_email="pramod.s.kumbhar@gmail.com"  --build-arg ldap_username=kumbhar -t cellular .
+    docker build --build-arg username=kumbhar --build-arg password=kumbhar123 --build-arg git_name="Pramod Kumbhar" --build-arg git_email="pramod.s.kumbhar@gmail.com"  --build-arg ldap_username=<YourUsername> -t cellular .
     ```
 This will build neuron based simulation toolchain and prepare test simulation.
 
@@ -29,17 +29,26 @@ This will build neuron based simulation toolchain and prepare test simulation.
     docker run -i -t cellular:latest /bin/bash
     cd sim/build/circuitBuilding_1000neurons/
     module load neurodamus/master
-    mpiexec -n 6 --allow-run-as-root special $HOC_LIBRARY_PATH/init.hoc -mpi
+    mpiexec -n 6 --host localhost:6 --allow-run-as-root special $HOC_LIBRARY_PATH/init.hoc -mpi
     ```
 - To run a simulation by launching a container:
 
     ```
-    docker run -i -t cellular:latest /bin/bash -c 'cd $HOME/sim/build/circuitBuilding_1000neurons && . $SPACK_ROOT/share/spack/setup-env.sh && module load neurodamus/master && mpiexec -n 6 --allow-run-as-root special $HOC_LIBRARY_PATH/init.hoc -mpi'
+    docker run -i -t cellular:latest /bin/bash -c -i 'cd $HOME/sim/build/circuitBuilding_1000neurons && module load neurodamus/master && mpiexec -n 6 --host localhost:6 --allow-run-as-root special $HOC_LIBRARY_PATH/init.hoc -mpi'
     ```
+
+You can change the neurodamus module you want to load for your simulation. The installed ones are:
+- neurodamus/master
+- neurodamus-neocortex
+- neurodamus-hippocampus
+- neurodamus-thalamus
+
+For the circuitBuilding only the neurodamus/master and neurodamus-neocortex will work, because the mod files are compiled for neocortex.
 
 - To run on multiple docker containers:
 	- Update `docker-compose.yml` specification with appropriate number of compute nodes (`scale` parameter in `node` service)
 	- Launch containers with `docker-compose`
+	- Find compute nodes IP
 	- Run simulation on the running containers
 
 	    ```
@@ -54,9 +63,13 @@ This will build neuron based simulation toolchain and prepare test simulation.
 		7ac4b751c574        cellular:latest     "/usr/sbin/sshd -D"   8 minutes ago       Up 3 minutes        22/tcp                  neurondockerspack_node_3
 		60ec8d0e7052        cellular:latest     "/usr/sbin/sshd -D"   8 minutes ago       Up 3 minutes        22/tcp                  neurondockerspack_node_2
 
+		# find ip of compute node
+		$ PROC_PER_NODE=2
+		$ COMPUTE_NODES=`docker ps -q --filter "name=node_" | xargs docker inspect --format "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" | xargs echo | sed -e $"s/ /:$PROC_PER_NODE,/g"`:$PROC_PER_NODE
+
 		# make sure nodes are connected (username used inside container)
 		$ USERNAME=kumbhar
-		$ docker-compose exec --user $USERNAME --privileged login /bin/bash -c 'mpiexec -n 6  --host node_1:2,node_2:2,node_3:2 $HOME/test/hello'
+		$ docker-compose exec --user $USERNAME --privileged login /bin/bash -c -i "\$MPIEXEC -n 6  --host $COMPUTE_NODES \$HOME/test/hello"
 		Hello world from processor 1643c10a96af, rank 0 out of 6 processors
 		Hello world from processor 1643c10a96af, rank 1 out of 6 processors
 		Hello world from processor 60ec8d0e7052, rank 2 out of 6 processors
@@ -65,7 +78,7 @@ This will build neuron based simulation toolchain and prepare test simulation.
 		Hello world from processor 7ac4b751c574, rank 5 out of 6 processors
 
 		# run simulation using multiple containers
-		$ docker-compose exec --user $USERNAME --privileged login /bin/bash -c 'cd $HOME/sim/build/circuitBuilding_1000neurons && . $SPACK_ROOT/share/spack/setup-env.sh && module load neurodamus/master && mpiexec -x HOC_LIBRARY_PATH -n 6 --host node_1:2,node_2:2,node_3:2 `which special` ${HOC_LIBRARY_PATH}/init.hoc -mpi'
+		$ docker-compose exec --user $USERNAME --privileged login /bin/bash -c "cd \$HOME/sim/build/circuitBuilding_1000neurons && . \$SPACK_ROOT/share/spack/setup-env.sh && module load neurodamus/master && \$MPIEXEC -x HOC_LIBRARY_PATH -n 6 --host $COMPUTE_NODES \$SPECIAL \$HOC_LIBRARY_PATH/init.hoc -mpi"
 		....
 		numprocs=6
 		NEURON -- VERSION + master (9f36b13+) 2018-08-28

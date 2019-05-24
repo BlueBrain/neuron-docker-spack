@@ -28,11 +28,14 @@ RUN apt-get update \
     make \
     python2.7-dev \
     libncurses-dev \
+    libncursesw5-dev \
     openssh-server \
-    libopenmpi-dev \
-    libhdf5-serial-dev \
+    numactl \
+    libhdf5-openmpi-dev \
     python-minimal \
     libtool \
+    libpciaccess-dev \
+    libxml2-dev \
     tcl-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -129,7 +132,9 @@ RUN echo "  User ${LDAP_USERNAME}" >> $HOME/.ssh/config
 RUN echo "  IdentityFile ~/.ssh/id_rsa" >> $HOME/.ssh/config
 
 # register external packages
-RUN spack install autoconf automake bison cmake flex libtool ncurses openmpi pkg-config python
+RUN spack install autoconf automake bison cmake flex libtool ncurses pkg-config python
+
+RUN spack install openmpi
 
 # install neuron
 RUN spack spec -I neuron
@@ -143,6 +148,12 @@ RUN spack find
 # install neurodamus
 RUN spack spec -I neurodamus@master~coreneuron
 RUN spack install neurodamus@master~coreneuron
+RUN spack spec -I neurodamus-neocortex~coreneuron
+RUN spack install neurodamus-neocortex~coreneuron
+RUN spack spec -I neurodamus-hippocampus~coreneuron
+RUN spack install neurodamus-hippocampus~coreneuron
+RUN spack spec -I neurodamus-thalamus~coreneuron
+RUN spack install neurodamus-thalamus~coreneuron
 
 # clone test simulation, disable report multi-container run
 RUN git clone ssh://bbpcode.epfl.ch/user/kumbhar/simtestdata $HOME/sim
@@ -157,11 +168,20 @@ RUN mkdir $HOME/sim/build \
 # add test example
 ADD test/hello.c $HOME/test/hello.c
 RUN sudo chown -R $USERNAME $HOME/test
-RUN mpicc $HOME/test/hello.c -o $HOME/test/hello
+RUN . $SPACK_ROOT/share/spack/setup-env.sh && module load openmpi && mpicc $HOME/test/hello.c -o $HOME/test/hello
 
 # start in $HOME
 WORKDIR $HOME
 
+# set path
+ENV PATH="${HOME}/install/openmpi-3.1.1/bin:${PATH}"
+ENV MPIEXEC="${HOME}/install/openmpi-3.1.1/bin/mpiexec"
+ENV SPECIAL="${HOME}/install/neurodamus-master/x86_64/special"
+
+RUN spack install hpctoolkit@master
+RUN spack install tau
+
 # start as root
 USER root
+
 CMD ["/usr/sbin/sshd", "-D"]
