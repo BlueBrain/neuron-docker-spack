@@ -1,5 +1,0 @@
-config:
-  install_tree: $HOME/install
-  build_stage:
-    - $tempdir
-  install_path_scheme: '${PACKAGE}-${VERSION}'
