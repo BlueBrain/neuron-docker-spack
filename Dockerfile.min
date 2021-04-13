@@ -1,0 +1,74 @@
+FROM ubuntu:18.04
+MAINTAINER Pramod Kumbhar <pramod.s.kumbhar@gmail.com>
+ENV DEBIAN_FRONTEND noninteractive
+
+# default software required
+RUN apt-get update \
+    && apt-get -y install software-properties-common \
+    && add-apt-repository ppa:ubuntu-toolchain-r/test \
+    && apt-get update \
+    && apt-get -y --allow-downgrades --allow-remove-essential --allow-change-held-packages install \
+    aptitude \
+    cmake \
+    build-essential \
+    git \
+    software-properties-common \
+    sudo \
+    vim \
+    zlib1g-dev \
+    libbz2-dev \
+    curl \
+    gfortran \
+    unzip \
+    bison \
+    flex \
+    pkg-config \
+    autoconf \
+    automake \
+    make \
+    python2.7-dev \
+    libncurses-dev \
+    libncursesw5-dev \
+    openssh-server \
+    numactl \
+    libhdf5-openmpi-dev \
+    python-minimal \
+    libtool \
+    libpciaccess-dev \
+    libxml2-dev \
+    tcl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# default arguments
+ARG username=neuron
+ARG password=neuron123
+
+# username password
+ENV USERNAME $username
+ENV PASSWORD $password
+
+# user setup (ssh login fix, otherwise user is kicked off after login)
+RUN mkdir /var/run/sshd \
+    && echo 'root:${USERNAME}' | chpasswd \
+    && sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config \
+    && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+# add USER
+RUN useradd -m -s /bin/bash ${USERNAME} \
+    && echo "${USERNAME}:${PASSWORD}" | chpasswd \
+    && adduser --disabled-password --gecos "" ${USERNAME} sudo \
+    && echo ${USERNAME}' ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+ENV NOTVISIBLE "in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
+# expose ssh port
+EXPOSE 22
+
+USER $USERNAME
+WORKDIR /home/$USERNAME
+
+RUN git clone https://github.com/neuronsimulator/nrn.git
+
+CMD ["/usr/sbin/sshd", "-D"]
