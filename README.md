@@ -1,3 +1,10 @@
+### Minimal Docker image for NEURON development
+
+```
+docker build -t neuron-dev -f "Dockerfile.min" .
+docker run -it neuron-dev bash
+```
+
 ### Spack Based Docker Image for NEURON Simulations
 
 - Create SSH key-pair
