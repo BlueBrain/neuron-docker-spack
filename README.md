@@ -111,3 +111,9 @@ For the circuitBuilding only the neurodamus/master and neurodamus-neocortex will
     * Do not push the image
     * Remove ssh key from server once the image is built
     * Todo : need to squash all layes
+
+## Funding & Acknowledgment
+
+The development of this software was supported by funding to the Blue Brain Project, a research center of the École polytechnique fédérale de Lausanne (EPFL), from the Swiss government's ETH Board of the Swiss Federal Institutes of Technology.
+
+Copyright © 2018-2022 Blue Brain Project/EPFL
